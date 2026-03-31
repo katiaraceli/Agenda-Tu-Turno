@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Salud y Bienestar · Agenda de Turnos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  /* Paleta Salud y Bienestar Premium */
+  --bg-white: #FFFFFF;
+  --bg-pink: #F7EAEB;  /* Rosa palo suave */
+  --accent: #D4AF37;   /* Dorado Satinado */
+  --accent-dim: #C5A028;
+  --surface: #FFFFFF;
+  --text: #1F2937;     /* Gris oscuro para legibilidad */
+  --text-muted: #6B7280;
+  --border: rgba(212, 175, 55, 0.3);
+}
+
+html{scroll-behavior:smooth}
+
+body {
+  margin: 0;
+  padding: 0;
+  /* El fondo diagonal "/" que pediste */
+  background: linear-gradient(135deg, var(--bg-white) 50%, var(--bg-pink) 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Quitamos el brillo oscuro anterior */
+.bg-grid, .bg-glow { display: none; }
+
+main {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+/* Header */
+.header { text-align: center; margin-bottom: 72px; }
+.header-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .25em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.header-eyebrow::before, .header-eyebrow::after { content:''; display:block; width:32px; height:1px; background:var(--accent); }
+
+.header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(48px, 8vw, 96px);
+  letter-spacing: .04em;
+  line-height: .95;
+  margin-bottom: 16px;
+  color: var(--accent);
+}
+.header-title span { color: var(--text); opacity: 0.8; }
+
+.header-desc {
+  font-size: 15px;
+  color: var(--text-muted);
+  max-width: 420px;
+  margin: 0 auto;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+/* Cards grid */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(212, 175, 55, 0.15);
+}
+
+.card-preview {
+  height: 180px;
+  background: #fdfbfc; /* Un blanco rosáceo muy suave */
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mini UI previews */
+.preview-phone {
+  background: #1a1a1a;
+  border: 2px solid #333;
+  border-radius: 14px;
+  width: 110px;
+  height: 160px;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+}
+.preview-topbar { font-size: 6px; color: var(--accent); margin-bottom: 6px; border-bottom: 1px solid #333; padding-bottom: 3px; }
+.preview-content { display: flex; flex-direction: column; gap: 4px; }
+.preview-svc { background: #222; height: 12px; border-radius: 2px; }
+.preview-svc.sel { border: 1px solid var(--accent); }
+
+.card-body { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+.card-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--accent-dim);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-tag::before { content: ''; width: 16px; height: 1px; background: var(--accent-dim); }
+
+.card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; flex: 1; }
+
+.card-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-cta { font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+.chip { font-size: 9px; padding: 3px 8px; border-radius: 4px; background: var(--bg-pink); color: var(--accent-dim); font-family: 'DM Mono', monospace; }
+
+/* Footer */
+footer { padding: 24px; text-align: center; border-top: 1px solid var(--border); }
+.footer-text { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: .1em; }
+
+/* Animations */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+.header, .card { animation: fadeUp .5s ease both; }
+</style>
+</head>
+<body>
+
+<main>
+  <div class="header">
+    <div class="header-eyebrow">Gestión Profesional Wellness</div>
+    <h1 class="header-title">SALUD Y <span>BIENESTAR</span></h1>
+    <p class="header-desc">App profesional de reservas médicas y estética. Elegancia y eficiencia en tu consultorio.</p>
+  </div>
+
+  <div class="cards">
+
+    <a href="demo.html" class="card">
+      <div class="card-preview">
+          <div class="preview-phone">
+            <div class="preview-topbar">◆ DISPONIBILIDAD</div>
+            <div class="preview-content">
+              <div class="preview-svc"></div>
+              <div class="preview-svc sel"></div>
+              <div class="preview-svc"></div>
+            </div>
+          </div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag">Agenda Online</div>
+        <div class="card-title">TURNOS DISPONIBLES</div>
+        <p class="card-desc">Reservá tu espacio de forma inmediata. Visualización clara de horarios libres para cada profesional.</p>
+        <div class="card-footer">
+          <div class="card-cta">VER HORARIOS <span class="card-arrow">→</span></div>
+          <div class="card-chips">
+            <span class="chip">24/7</span>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <a href="#" class="card">
+      <div class="card-preview">
+          <div class="preview-phone">
+            <div class="preview-topbar">↻ GESTIÓN</div>
+            <div class="preview-content">
+              <div style="background:var(--accent); height:12px; border-radius:2px"></div>
+              <div class="preview-svc"></div>
+            </div>
+          </div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag">Autogestión</div>
+        <div class="card-title">REPROGRAMAR</div>
+        <p class="card-desc">Cambiá tu cita fácilmente desde cualquier dispositivo. Flexibilidad total para tus pacientes.</p>
+        <div class="card-footer">
+          <div class="card-cta">CAMBIAR CITA <span class="card-arrow">→</span></div>
+          <div class="card-chips">
+            <span class="chip">FÁCIL</span>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <a href="#" class="card">
+      <div class="card-preview">
+          <div class="preview-phone">
+            <div class="preview-topbar">ⓘ INFORMACIÓN</div>
+            <div class="preview-content">
+              <div style="border:1px solid #444; height:40px; border-radius:2px"></div>
+            </div>
+          </div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag">Información</div>
+        <div class="card-title">CONSULTAR</div>
+        <p class="card-desc">Accedé a los detalles de tu próximo turno y requisitos para tu tratamiento médico o estético.</p>
+        <div class="card-footer">
+          <div class="card-cta">DETALLES <span class="card-arrow">→</span></div>
+          <div class="card-chips">
+            <span class="chip">INFO</span>
+          </div>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</main>
+
+<footer>
+    <div style="text-align: center; padding: 20px; background: #eee; border-top: 2px solid var(--accent);">
+    <p style="font-family: 'DM Mono'; font-size: 10px; margin-bottom: 10px;">MODO DESARROLLADOR</p>
+    <button onclick="iniciarSesionGoogle()" style="padding: 10px; cursor: pointer;">1. CONECTAR GOOGLE</button>
+    <button onclick="intentarEnviarPrueba()" style="padding: 10px; cursor: pointer;">2. PROBAR TURNO</button>
+</div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/calendario.js"></script> <script src="js/back.js"></script>       <script>
+  window.onload = startApp; // Arrancamos el cerebro
+<script>
+  // Esta función conecta el botón con back.js
+  function iniciarSesionGoogle() {
+      conectarGoogle(); 
+  }
+
+  // Esta función es la que te falta y por eso da error
+  function intentarEnviarPrueba() {
+      enviarTurnoPrueba(); 
+  }
+</script>
+</script>
+
+</body>
+</html>
