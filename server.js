@@ -7,8 +7,9 @@ import calendarRoutes from "./routes/calendar.js";
 
 const app = express();
 
+// Middleware: ¡Es fundamental que express.json() esté aquí arriba!
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); 
 
 app.use("/auth", authRoutes);
 app.use("/calendar", calendarRoutes);
