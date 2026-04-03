@@ -1,9 +1,10 @@
+// config/env.js
 import dotenv from "dotenv";
 dotenv.config();
 
 export const config = {
-    port: process.env.PORT || 3000,
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    redirectUri: process.env.GOOGLE_REDIRECT_URI
+  port: 3001,
+  clientId: "645274224027-bfi5mgiqpqldtcngntnn466gsr3ibtta.apps.googleusercontent.com",
+  clientSecret: "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",
+  redirectUri: "http://localhost:3001/auth/callback"
 };

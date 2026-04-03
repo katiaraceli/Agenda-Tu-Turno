@@ -10,7 +10,7 @@ function agendarTurno() {
     return;
   }
 
-  fetch("http://localhost:3000/calendar/crear", {
+  fetch("http://localhost:3001/calendar/crear", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
