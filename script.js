@@ -1,16 +1,13 @@
 function agendarTurno() {
-    // 1. Capturamos los elementos
     const summaryInput = document.getElementById('summary');
     const startInput = document.getElementById('start');
-    const emailInput = document.getElementById('email'); // Ahora sí existe
+    const emailInput = document.getElementById('email');
 
-    // 2. Validamos que no estén vacíos
     if (!startInput.value || !emailInput.value) {
         alert("Por favor, completá la Fecha y tu Email");
         return;
     }
 
-    // 3. Armamos la valija para el servidor
     const datos = {
         summary: summaryInput.value,
         start: startInput.value,
@@ -22,10 +19,21 @@ function agendarTurno() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(datos)
     })
-    .then(res => res.json())
-    .then(data => {
-        console.log("✅ Servidor dice:", data);
-        alert("¡Turno agendado! Revisá tu casilla de correo.");
+    .then(async res => {
+        const data = await res.json();
+        
+        // 🚨 SI EL HORARIO ESTÁ OCUPADO
+        if (res.status === 409) {
+            alert("❌ ¡Error! Ese horario ya está reservado. Por favor, elegí otro.");
+            return;
+        }
+
+        if (res.ok) {
+            alert("✅ ¡Turno agendado! Revisá tu casilla de correo.");
+            console.log("Servidor dice:", data);
+        } else {
+            alert("⚠️ Hubo un problema: " + (data.error || "Error desconocido"));
+        }
     })
     .catch(err => {
         console.error("❌ Error de conexión:", err);

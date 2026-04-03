@@ -6,48 +6,63 @@ import { oauth2Client } from "../services/googleService.js";
 const router = express.Router();
 
 router.post("/crear", async (req, res) => {
-  // 1. Recibimos los datos (sumamos 'email' que viene de la web rosa)
-  const { summary, start, email } = req.body; 
-
+  const { summary, start, email } = req.body;
   if (!start) return res.status(400).json({ error: "Falta fecha/hora" });
 
-  const fechaInicio = new Date(start);
   const calendar = google.calendar({ version: "v3", auth: oauth2Client });
-
-  const evento = {
-    summary: summary || "Turno Web",
-    description: `Turno agendado para: ${summary}. ¡Saludos!`,
-    start: {
-      dateTime: fechaInicio.toISOString(),
-      timeZone: "America/Argentina/Buenos_Aires",
-    },
-    end: {
-      dateTime: new Date(fechaInicio.getTime() + 3600000).toISOString(),
-      timeZone: "America/Argentina/Buenos_Aires",
-    },
-  };
+  
+  const fechaInicio = new Date(start);
+  const fechaFin = new Date(fechaInicio.getTime() + 3600000); // 1 hora de duración
 
   try {
-    const response = await calendar.events.insert({
+    // 🔍 1. REVISAR DISPONIBILIDAD
+    const checkEvents = await calendar.events.list({
       calendarId: "primary",
-      resource: evento,
+      timeMin: fechaInicio.toISOString(),
+      timeMax: fechaFin.toISOString(),
+      singleEvents: true,
     });
 
-    // 📧 Solo intenta mandar el mail si el cliente puso uno
-    if (req.body.email) {
+    if (checkEvents.data.items.length > 0) {
+      console.log("📅 Horario ocupado:", start);
+      return res.status(409).json({ error: "El horario ya está ocupado" });
+    }
+
+    // ✅ 2. AGENDAR EN CALENDAR
+    const response = await calendar.events.insert({
+      calendarId: "primary",
+      resource: {
+        summary: summary || "Turno Web",
+        description: `Cliente: ${email}`,
+        start: { dateTime: fechaInicio.toISOString(), timeZone: "America/Argentina/Buenos_Aires" },
+        end: { dateTime: fechaFin.toISOString(), timeZone: "America/Argentina/Buenos_Aires" },
+      },
+    });
+
+    // 📧 3. ENVIAR MAIL DE CONFIRMACIÓN
+    if (email) {
       await transporter.sendMail({
         from: '"Agenda Tu Turno 📅" <sistema.turnosapp@gmail.com>',
-        to: req.body.email, 
+        to: email, 
         subject: "✅ Turno Confirmado",
-        html: `<p>Tu turno para <b>${summary}</b> fue agendado.</p>`
+        html: `
+          <div style="font-family: sans-serif; border: 1px solid #ddd; padding: 20px;">
+            <h2 style="color: #d4af37;">¡Turno Agendado con éxito!</h2>
+            <p><b>Motivo:</b> ${summary || "Turno Web"}</p>
+            <p><b>Fecha y Hora:</b> ${new Date(start).toLocaleString()}</p>
+            <hr>
+            <p style="font-size: 12px; color: #666;">Te esperamos en nuestro local.</p>
+          </div>
+        `
       });
-      console.log("📧 Mail enviado con éxito");
+      console.log("📧 Mail de confirmación enviado a:", email);
     }
 
     res.json({ success: true, link: response.data.htmlLink });
+
   } catch (error) {
-    console.error("❌ Error:", error);
-    res.status(500).json({ error: "Error en el proceso" });
+    console.error("❌ Error en el proceso:", error);
+    res.status(500).json({ error: "Error al procesar el turno" });
   }
 });
 
