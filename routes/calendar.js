@@ -1,3 +1,4 @@
+import { transporter } from '../config/mailer.js';
 import express from "express";
 import { google } from "googleapis";
 import { oauth2Client } from "../services/googleService.js";
@@ -5,20 +6,17 @@ import { oauth2Client } from "../services/googleService.js";
 const router = express.Router();
 
 router.post("/crear", async (req, res) => {
-  const { summary, start } = req.body;
+  // 1. Recibimos los datos (sumamos 'email' que viene de la web rosa)
+  const { summary, start, email } = req.body; 
 
-  // 1. Validaciones de seguridad (tus favoritas)
   if (!start) return res.status(400).json({ error: "Falta fecha/hora" });
 
   const fechaInicio = new Date(start);
-  if (isNaN(fechaInicio)) return res.status(400).json({ error: "Fecha inválida" });
-
   const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
-  // 2. Construcción del evento con notificación
   const evento = {
     summary: summary || "Turno Web",
-    description: `Turno agendado para: ${summary}. ¡Saludos!`, // Agregué el saludo que pediste
+    description: `Turno agendado para: ${summary}. ¡Saludos!`,
     start: {
       dateTime: fechaInicio.toISOString(),
       timeZone: "America/Argentina/Buenos_Aires",
@@ -27,28 +25,29 @@ router.post("/crear", async (req, res) => {
       dateTime: new Date(fechaInicio.getTime() + 3600000).toISOString(),
       timeZone: "America/Argentina/Buenos_Aires",
     },
-    // 📧 Esto hace que llegue el mail detallado
-    attendees: [{ email: 'sistema.turnosapp@gmail.com' }],
   };
 
   try {
     const response = await calendar.events.insert({
       calendarId: "primary",
       resource: evento,
-      sendUpdates: 'all', // 🔔 Esto dispara el aviso al Gmail
     });
 
-    // Esto te dará el link real en la terminal para que lo compruebes vos misma
-    console.log("---------------------------------");
-    console.log("✅ TURNO CREADO EXITOSAMENTE");
-    console.log("🔗 LINK:", response.data.htmlLink);
-    console.log("---------------------------------");
+    // 📧 Solo intenta mandar el mail si el cliente puso uno
+    if (req.body.email) {
+      await transporter.sendMail({
+        from: '"Agenda Tu Turno 📅" <sistema.turnosapp@gmail.com>',
+        to: req.body.email, 
+        subject: "✅ Turno Confirmado",
+        html: `<p>Tu turno para <b>${summary}</b> fue agendado.</p>`
+      });
+      console.log("📧 Mail enviado con éxito");
+    }
 
     res.json({ success: true, link: response.data.htmlLink });
-
   } catch (error) {
-    console.error("❌ Error en Google API:", error);
-    res.status(500).json({ error: "Error creando evento", details: error.message });
+    console.error("❌ Error:", error);
+    res.status(500).json({ error: "Error en el proceso" });
   }
 });
 

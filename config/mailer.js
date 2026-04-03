@@ -6,7 +6,7 @@ export const transporter = nodemailer.createTransport({
   secure: true, // true para el puerto 465
   auth: {
     user: 'sistema.turnosapp@gmail.com',
-    pass: 'ACA_VAN_LAS_16_LETRAS_SIN_ESPACIOS' 
+    pass: 'nfwfjngzidgwawtn' 
   }
 });
 
