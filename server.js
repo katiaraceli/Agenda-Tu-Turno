@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json()); 
 
-// 🚀 ¡PASO CLAVE!: Cargar el token apenas arranca
+//  Cargar el token apenas arranca
 cargarTokenSiExiste(); 
 
 app.use("/auth", authRoutes);

@@ -5,7 +5,7 @@ import { oauth2Client } from "../services/googleService.js";
 
 const router = express.Router(); // 
 
-// ... acá abajo sigue tu código: router.post("/crear", async (req, res) => { ...
+// ... ("/crear", async (req, res) => { ...
 router.post("/crear", async (req, res) => {
   const { summary, start, email } = req.body;
   if (!start) return res.status(400).json({ error: "Falta fecha/hora" });
@@ -28,10 +28,10 @@ router.post("/crear", async (req, res) => {
       timeMin: timeMinSearch,
       timeMax: timeMaxSearch,
       singleEvents: true,
-      timeZone: "America/Argentina/Buenos_Aires" // 👈 Aseguramos que busque en tu hora
+      timeZone: "America/Argentina/Buenos_Aires" // Aseguramos que busque tu zona horaria
     });
 
-    // IMPORTANTE: Si te tira "Ocupado", mirá la terminal de VS Code
+    // IMPORTANTE: Si dice "Ocupado", mirá la terminal de VS Code
     if (checkEvents.data.items.length > 0) {
       console.log("⚠️ CHOQUE DETECTADO CON ESTE EVENTO:", checkEvents.data.items[0].summary);
       return res.status(409).json({ error: "El horario ya está ocupado" });

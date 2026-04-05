@@ -1,9 +1,9 @@
 import { google } from "googleapis";
 import { config } from "../config/env.js";
-import fs from "fs"; // 👈 Sistema de archivos
+import fs from "fs"; // Sistema de archivos
 import path from "path";
 
-// Definimos dónde se va a guardar el archivo (en la raíz de tu proyecto)
+// Definimos dónde se va a guardar el archivo (en la raíz del  proyecto)
 const TOKEN_PATH = path.join(process.cwd(), "token.json");
 
 export const oauth2Client = new google.auth.OAuth2(
@@ -23,7 +23,7 @@ export function cargarTokenSiExiste() {
   }
 }
 
-// ✍️ MODIFICACIÓN: Ahora guarda el token físicamente
+// MODIFICACIÓN: Ahora guarda el token físicamente
 export async function getTokens(code) {
   const { tokens } = await oauth2Client.getToken(code);
   oauth2Client.setCredentials(tokens);

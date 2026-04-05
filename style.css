@@ -1,95 +1,167 @@
-/* Reseteo para que no queden bordes blancos raros */
+:root {
+    --blanco: #FFFFFF;
+    --rosa-fuerte: #F1D4D7;
+    --dorado: #D4AF37;
+    --texto-principal: #222222;
+    --borde: #DDDDDD;
+    --sombra-soft: rgba(0, 0, 0, 0.08);
+    --sombra-focus: rgba(212, 175, 55, 0.25);
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-/* El fondo dividido en diagonal: Blanco y Rosa */
 body {
-    background: linear-gradient(135deg, #ffffff 50%, #fce4ec 50%);
-    height: 100vh;
+    font-family: 'Montserrat', sans-serif;
+    color: var(--texto-principal);
+    background-color: var(--blanco);
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.contenedor-principal {
+/* Fondo */
+.bg-diagonal {
+    position: fixed;
     width: 100%;
-    max-width: 400px;
+    height: 100%;
+    background: linear-gradient(135deg, var(--blanco) 50%, var(--rosa-fuerte) 50%);
+    z-index: -1;
+}
+
+/* Layout */
+.main-container {
+    width: 100%;
+    max-width: 420px;
     padding: 20px;
     text-align: center;
 }
 
-/* Título Dorado Centrado */
+/* Header */
+.header {
+    margin-bottom: 35px;
+}
+
 .titulo-dorado {
-    color: #D4AF37; /* Dorado */
-    font-size: 2.2rem;
-    font-weight: 800;
-    margin-bottom: 25px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    color: var(--dorado);
+    font-size: 2rem;
+    font-weight: 300;
+    letter-spacing: 2px; /* 👈 mejorado */
+    margin-bottom: 8px;
 }
 
-/* Caja blanca para los datos */
-.tarjeta {
-    background: white;
+.subtitulo {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+/* Card */
+.card {
+    background: var(--blanco);
     padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    border-radius: 18px;
+    box-shadow: 0 20px 40px var(--sombra-soft);
+
+    /* ✨ micro interacción */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.campo {
-    text-align: left;
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.12);
+}
+
+/* Inputs */
+.input-group {
     margin-bottom: 20px;
+    text-align: left;
 }
 
 label {
-    display: block;
-    color: #666;
-    font-size: 0.85rem;
-    margin-bottom: 8px;
+    font-size: 0.7rem;
     font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--dorado);
+    display: block;
+    letter-spacing: 1px;
 }
 
 input {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #f0f0f0;
+    padding: 12px 15px;
+    border: 1px solid var(--borde);
     border-radius: 10px;
-    outline: none;
-    transition: border-color 0.3s;
+    font-size: 0.95rem;
+    transition: all 0.25s ease;
+}
+
+input::placeholder {
+    color: #999;
+}
+
+input:hover {
+    border-color: #bbb;
 }
 
 input:focus {
-    border-color: #fce4ec;
+    outline: none;
+    border-color: var(--dorado);
+    box-shadow: 0 0 0 3px var(--sombra-focus);
 }
 
-/* Botón Estilo Calendario */
-.boton-calendario {
+/* Botón */
+.btn-premium {
     width: 100%;
-    background-color: white;
-    color: #333;
-    border: 3px solid #333;
-    padding: 15px;
-    font-size: 1rem;
-    font-weight: bold;
+    padding: 14px;
+    background: var(--dorado);
+    border: none;
     border-radius: 12px;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
     cursor: pointer;
+
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px;
-    box-shadow: 5px 5px 0px #333; /* Sombra sólida tipo calendario */
-    transition: all 0.2s;
+
+    transition: all 0.25s ease;
 }
 
-.boton-calendario:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 7px 7px 0px #333;
+/* ✨ hover más premium */
+.btn-premium:hover {
+    background: #c2992f;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(212,175,55,0.3);
 }
 
-.boton-calendario:active {
-    transform: translate(3px, 3px);
-    box-shadow: 0px 0px 0px #333;
+/* ✨ click real */
+.btn-premium:active {
+    transform: scale(0.97);
+}
+
+/* Icono */
+.icon {
+    margin-right: 8px;
+}
+
+/* Animación entrada */
+.main-container {
+    animation: fadeUp 0.6s ease;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

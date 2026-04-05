@@ -8,11 +8,19 @@ function agendarTurno() {
         return;
     }
 
-    const datos = {
-        summary: summaryInput.value,
-        start: startInput.value,
+    // --- AGREGAR DESDE AQUÍ ---
+    const fechaSeleccionada = new Date(startInput.value);
+    fechaSeleccionada.setMinutes(0, 0, 0); // Esto fuerza el "O´clock"
+    const startExacto = fechaSeleccionada.toISOString();
+    // --- HASTA AQUÍ ---
+
+const datos = {
+        // Así combinamos el texto fijo con lo que escribe el usuario
+        summary: `Turno por: ${summaryInput.value || "Consulta General"}`, 
+        start: startExacto, 
         email: emailInput.value
     };
+    // ... 
 
     fetch("http://localhost:3001/calendar/crear", {
         method: "POST",

@@ -15,7 +15,7 @@ router.get("/callback", async (req, res) => {
     const code = req.query.code; // El código que te da Google
     const tokens = await getTokens(code); // Intercambiamos código por llaves
     
-    setTokens(tokens); // 👈 ¡ACÁ ESTÁ EL SECRETO! Activa el permiso.
+    setTokens(tokens); // Activa el permiso.
     
     console.log("🔐 Permisos de Google activados correctamente");
     res.send("¡Login exitoso! Ya podés cerrar esta pestaña y agendar tu turno.");
