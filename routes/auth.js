@@ -9,7 +9,7 @@ router.get("/", (req, res) => {
   res.redirect(url);
 });
 
-// 2. Callback de Google (Cuando volvés con el código)
+// 2. Callback de Google 
 router.get("/callback", async (req, res) => {
   try {
     const code = req.query.code; // El código que te da Google

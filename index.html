@@ -12,46 +12,46 @@
 <body>
     <div class="bg-diagonal"></div>
 
-    <main class="main-container">
+   <main class="main-container">
+    <header class="header">
+        <h1 class="titulo-dorado">AGENDA TU TURNO</h1>
+        <p class="subtitulo">Reserva tu espacio en un solo clic</p>
+    </header>
 
-        <header class="header">
-            <h1 class="titulo-dorado">AGENDA TU TURNO</h1>
-            <p class="subtitulo">Reserva tu espacio en un solo clic</p>
-        </header>
+    <section class="card-container">
+        <div class="card">
+            <form id="form-agenda" onsubmit="event.preventDefault();">
 
-        <section class="card-container">
-            <div class="card">
+                <div class="input-group">
+                    <label for="summary">Motivo del turno</label>
+                    <input type="text" id="summary" placeholder="Ej: /Motivo/ con /Nombre/ ">
+                </div>
 
-                <form id="form-agenda" onsubmit="event.preventDefault();">
+                <div class="input-group">
+                    <label for="nombreCompleto">Tu Nombre Completo</label>
+                    <input type="text" id="nombreCompleto" placeholder="Ej: Juan Pérez" required>
+                </div>
 
-                    <div class="input-group">
-                        <label for="summary">Motivo del turno</label>
-                        <input type="text" id="summary" placeholder="Ej. Turno con [Nombre] por [Motivo]">
-                    </div>
+                <div class="input-group">
+                    <label for="email">Tu Correo Electrónico</label>
+                    <input type="email" id="email" placeholder="nombre@ejemplo.com" required>
+                </div>
 
-                    <div class="input-group">
-                        <label for="start">Fecha y Hora</label>
-                        <input type="datetime-local" id="start" step="3600" required>
-                    </div>
+                <div class="input-group">
+                    <label for="start">Fecha y Hora</label>
+                    <input type="datetime-local" id="start" step="3600" required>
+                </div>
 
-                    <div class="input-group">
-                        <label for="email">Tu Correo Electrónico</label>
-                        <input type="email" id="email" placeholder="nombre@ejemplo.com" required>
-                    </div>
-
-                    <button type="button" id="btn-agendar" class="btn-premium" onclick="agendarTurno()">
-                        <span class="btn-content">
-                            <span class="icon">📅</span>
-                            <span class="text">AGENDAR</span>
-                        </span>
-                    </button>
-
-                </form>
-
-            </div>
-        </section>
-
-    </main>
+                <button type="button" id="btn-agendar" class="btn-premium" onclick="agendarTurno()">
+                    <span class="btn-content">
+                        <span class="icon">📅</span>
+                        <span class="text">AGENDAR</span>
+                    </span>
+                </button>
+            </form>
+        </div>
+    </section>
+</main>
 
     <script src="script.js"></script>
 </body>

@@ -1,50 +1,58 @@
-function agendarTurno() {
+async function agendarTurno() {
     const summaryInput = document.getElementById('summary');
+    const nombreInput = document.getElementById('nombreCompleto'); // <--- Captura el nuevo ID
     const startInput = document.getElementById('start');
     const emailInput = document.getElementById('email');
+    const btn = document.getElementById('btn-agendar');
 
-    if (!startInput.value || !emailInput.value) {
-        alert("Por favor, completá la Fecha y tu Email");
+    // Validación de seguridad
+    if (!startInput.value || !emailInput.value || !nombreInput.value) {
+        alert("Por favor, completá Nombre, Email y Fecha");
         return;
     }
 
-    // --- AGREGAR DESDE AQUÍ ---
     const fechaSeleccionada = new Date(startInput.value);
-    fechaSeleccionada.setMinutes(0, 0, 0); // Esto fuerza el "O´clock"
+    fechaSeleccionada.setMinutes(0, 0, 0); 
     const startExacto = fechaSeleccionada.toISOString();
-    // --- HASTA AQUÍ ---
 
-const datos = {
-        // Así combinamos el texto fijo con lo que escribe el usuario
-        summary: `Turno por: ${summaryInput.value || "Consulta General"}`, 
+    const datos = {
+        summary: summaryInput.value || "Consulta", 
+        nombreCompleto: nombreInput.value, // <--- Se agrega al paquete de envío
         start: startExacto, 
         email: emailInput.value
     };
-    // ... 
 
-    fetch("http://localhost:3001/calendar/crear", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(datos)
-    })
-    .then(async res => {
+    btn.disabled = true;
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⌛ PROCESANDO...";
+
+    try {
+        const res = await fetch("http://localhost:3001/calendar/crear", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(datos)
+        });
+
         const data = await res.json();
-        
-        // 🚨 SI EL HORARIO ESTÁ OCUPADO
+
         if (res.status === 409) {
-            alert("❌ ¡Error! Ese horario ya está reservado. Por favor, elegí otro.");
+            alert("❌ Horario ocupado. Elegí otro.");
             return;
         }
 
         if (res.ok) {
-            alert("✅ ¡Turno agendado! Revisá tu casilla de correo.");
-            console.log("Servidor dice:", data);
+            alert("✅ ¡Turno agendado! Revisá tu mail.");
+            summaryInput.value = "";
+            nombreInput.value = "";
+            startInput.value = "";
+            emailInput.value = "";
         } else {
-            alert("⚠️ Hubo un problema: " + (data.error || "Error desconocido"));
+            alert("⚠️ Error: " + (data.error || "No se pudo agendar"));
         }
-    })
-    .catch(err => {
-        console.error("❌ Error de conexión:", err);
-        alert("Fallo al conectar con el servidor");
-    });
+    } catch (err) {
+        alert("Fallo de conexión con el servidor");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+    }
 }

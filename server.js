@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { config } from "./config/env.js";
-import { cargarTokenSiExiste } from "./services/googleService.js"; // 👈 Importá esto
+import { cargarTokenSiExiste } from "./services/googleService.js"; //  Importá esto
 
 import authRoutes from "./routes/auth.js";
 import calendarRoutes from "./routes/calendar.js";
