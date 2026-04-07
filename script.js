@@ -27,7 +27,8 @@ async function agendarTurno() {
     btn.innerHTML = "⌛ PROCESANDO...";
 
     try {
-        const res = await fetch("http://localhost:3001/calendar/crear", {
+
+const res = await fetch("https://agenda-tu-turno.onrender.com/calendar/agendar", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(datos)
