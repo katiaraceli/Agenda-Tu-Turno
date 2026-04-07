@@ -1,18 +1,17 @@
 import { google } from "googleapis";
-import { config } from "../config/env.js";
+import { env as config } from "../config/env.js";
 import fs from "fs"; // Sistema de archivos
 import path from "path";
 
 // Definimos dónde se va a guardar el archivo (en la raíz del  proyecto)
 const TOKEN_PATH = path.join(process.cwd(), "token.json");
-
 export const oauth2Client = new google.auth.OAuth2(
-  config.clientId,
-  config.clientSecret,
-  config.redirectUri
+    config.GOOGLE_CLIENT_ID,    // Antes era config.clientId
+    config.GOOGLE_CLIENT_SECRET, // Antes era config.clientSecret
+    config.GOOGLE_REDIRECT_URI   // Antes era config.redirectUri
 );
 
-// 🔍 FUNCIÓN NUEVA: Lee el archivo al iniciar el servidor
+// Lee el archivo al iniciar el servidor
 export function cargarTokenSiExiste() {
   if (fs.existsSync(TOKEN_PATH)) {
     const token = JSON.parse(fs.readFileSync(TOKEN_PATH));

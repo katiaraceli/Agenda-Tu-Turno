@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { config } from "./config/env.js";
+import { env as config } from "./config/env.js";
 import { cargarTokenSiExiste } from "./services/googleService.js"; //  Importá esto
 
 import authRoutes from "./routes/auth.js";
@@ -17,6 +17,9 @@ cargarTokenSiExiste();
 app.use("/auth", authRoutes);
 app.use("/calendar", calendarRoutes);
 
-app.listen(config.port, () => {
-  console.log(`🚀 Servidor corriendo en puerto ${config.port}`);
+
+const port = config.PORT || 3001;
+
+app.listen(port, () => {
+    console.log(`🚀 Servidor corriendo en puerto ${port}`);
 });
