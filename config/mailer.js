@@ -6,10 +6,13 @@ dotenv.config();
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
-  secure: true, 
+  secure: true, // true para el puerto 465
   auth: {
-    user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS  
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS, // Aquí usará las 16 letras de Render
+  },
+  tls: {
+    rejectUnauthorized: false // Esto evita que Render bloquee la salida del mail
   }
 });
 
