@@ -1,4 +1,4 @@
-import { transporter } from '../config/mailer.js';
+import { transporter } from "../services/mailer.js";
 
 export const enviarNotificaciones = async (emailCliente, nombreCliente, servicio, fecha, linkCalendar) => {
     const adminMail = (process.env.EMAIL_USER || "").trim();
