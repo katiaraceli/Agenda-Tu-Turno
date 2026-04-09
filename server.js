@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { env as config } from "./config/env.js";
 import { cargarTokenSiExiste } from "./services/googleService.js"; 
-import "./services/mailer.js"; // <--- AGREGÁ ESTO
+import "./services/mailer.js"; // Esto ejecuta la verificación automáticamente
 
 import authRoutes from "./routes/auth.js";
 import calendarRoutes from "./routes/calendar.js";
@@ -12,7 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json()); 
 
-// Cargar el token apenas arranca
+// Cargar el token de Google apenas arranca
 cargarTokenSiExiste(); 
 
 app.use("/auth", authRoutes);
