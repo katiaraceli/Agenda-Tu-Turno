@@ -18,8 +18,9 @@ app.use("/auth", authRoutes);
 app.use("/calendar", calendarRoutes);
 
 
-const port = config.PORT || 3001;
+// Usamos el puerto que nos da Render o el 3001 si estamos en casa
+const PORT = process.env.PORT || 3001;
 
-app.listen(port, () => {
-    console.log(`🚀 Servidor corriendo en puerto ${port}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Servidor listo en el puerto ${PORT}`);
 });

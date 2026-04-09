@@ -5,7 +5,8 @@ import { enviarNotificaciones } from "../services/notificaciones.js";
 
 const router = express.Router();
 
-router.post("/crear", async (req, res) => {
+// Cambiá "/crear" por "/agendar"
+router.post("/agendar", async (req, res) => {
     // 1. Recibimos los datos del Body
     const { summary, start, email, nombreCompleto } = req.body;
     
