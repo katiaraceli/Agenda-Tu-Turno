@@ -4,15 +4,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // true para el puerto 465
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // Aquí usará las 16 letras de Render
-  },
-  tls: {
-    rejectUnauthorized: false // Esto evita que Render bloquee la salida del mail
+    pass: process.env.EMAIL_PASS, // Las 16 letras de Google
   }
 });
 
