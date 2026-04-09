@@ -29,7 +29,8 @@ async function agendarTurno() {
     try {
 
 const res = await fetch("https://agenda-tu-turno.onrender.com/calendar/agendar", {
-            method: "POST",
+   method: "POST",
+   // ... el resto de tu código
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(datos)
         });
