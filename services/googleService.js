@@ -1,34 +1,48 @@
 import { google } from "googleapis";
 import { env as config } from "../config/env.js";
-import fs from "fs"; // Sistema de archivos
+import fs from "fs"; 
 import path from "path";
 
-// Definimos dónde se va a guardar el archivo (en la raíz del  proyecto)
 const TOKEN_PATH = path.join(process.cwd(), "token.json");
-// MODIFICACIÓN: Buscamos primero en las variables de Render (process.env)
-// Si no existen, usamos las de tu archivo config
+
 export const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID || config.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET || config.GOOGLE_CLIENT_SECRET,
     process.env.GOOGLE_REDIRECT_URI || config.GOOGLE_REDIRECT_URI
 );
-// Lee el archivo al iniciar el servidor
+
 export function cargarTokenSiExiste() {
+  // 1. Prioridad: La variable que pegaste en el panel de Render
+  if (process.env.GOOGLE_TOKEN) {
+    try {
+      const token = JSON.parse(process.env.GOOGLE_TOKEN);
+      oauth2Client.setCredentials(token);
+      console.log("🚀 Token cargado desde las Variables de Render");
+      return; 
+    } catch (err) {
+      console.error("Error al leer GOOGLE_TOKEN de Render:", err);
+    }
+  }
+
+  // 2. Si no está en Render, busca el archivo local (Tu PC)
   if (fs.existsSync(TOKEN_PATH)) {
-    const token = JSON.parse(fs.readFileSync(TOKEN_PATH));
-    oauth2Client.setCredentials(token);
-    console.log("💾 Token cargado desde token.json (Ya no necesitás loguearte)");
+    try {
+        const token = JSON.parse(fs.readFileSync(TOKEN_PATH));
+        oauth2Client.setCredentials(token);
+        console.log("💾 Token cargado desde archivo local (token.json)");
+    } catch (err) {
+        console.error("Error al leer token.json local:", err);
+    }
   } else {
-    console.log("🎫 No hay token guardado. Hacé el login una vez en /auth");
+    console.log("🎫 No hay token en ningún lado. Revisá el panel de Render.");
   }
 }
 
-// MODIFICACIÓN: Ahora guarda el token físicamente
 export async function getTokens(code) {
   const { tokens } = await oauth2Client.getToken(code);
   oauth2Client.setCredentials(tokens);
   
-  // Guardamos el token en el disco duro
+  // Guardamos localmente (solo sirve en tu PC, en Render se borrará)
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));
   console.log("✅ Token guardado en token.json correctamente");
   
@@ -37,9 +51,9 @@ export async function getTokens(code) {
 
 export function getAuthUrl() {
   return oauth2Client.generateAuthUrl({
-    access_type: "offline", // "offline" permite que el token dure para siempre
+    access_type: "offline", 
     scope: ["https://www.googleapis.com/auth/calendar.events"],
-    prompt: 'consent' // Esto asegura que nos den el "refresh token"
+    prompt: 'consent' 
   });
 }
 
