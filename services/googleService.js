@@ -42,7 +42,7 @@ export async function getTokens(code) {
   const { tokens } = await oauth2Client.getToken(code);
   oauth2Client.setCredentials(tokens);
   
-  // Guardamos localmente (solo sirve en tu PC, en Render se borrará)
+  // Guardamos localmente (para tu PC)
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));
   console.log("✅ Token guardado en token.json correctamente");
   
