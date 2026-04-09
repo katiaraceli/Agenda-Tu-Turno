@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { env as config } from "./config/env.js";
 import { cargarTokenSiExiste } from "./services/googleService.js"; 
-import "./services/mailer.js"; // Esto ejecuta la verificación automáticamente
+import "./services/mailer.js";
 
 import authRoutes from "./routes/auth.js";
 import calendarRoutes from "./routes/calendar.js";
