@@ -5,10 +5,12 @@ import path from "path";
 
 // Definimos dónde se va a guardar el archivo (en la raíz del  proyecto)
 const TOKEN_PATH = path.join(process.cwd(), "token.json");
+// MODIFICACIÓN: Buscamos primero en las variables de Render (process.env)
+// Si no existen, usamos las de tu archivo config
 export const oauth2Client = new google.auth.OAuth2(
-    config.GOOGLE_CLIENT_ID,    // Antes decía clientId
-    config.GOOGLE_CLIENT_SECRET, // Antes decía clientSecret
-    config.GOOGLE_REDIRECT_URI   // Antes decía redirectUri
+    process.env.GOOGLE_CLIENT_ID || config.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET || config.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI || config.GOOGLE_REDIRECT_URI
 );
 // Lee el archivo al iniciar el servidor
 export function cargarTokenSiExiste() {
