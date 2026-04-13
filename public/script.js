@@ -1,6 +1,10 @@
+// 1. Configuración de la URL del Backend
+const API_URL = "https://agenda-tu-turno.onrender.com"; 
+
 async function agendarTurno() {
+    // Captura de elementos del DOM
     const summaryInput = document.getElementById('summary');
-    const nombreInput = document.getElementById('nombreCompleto'); // <--- Captura el nuevo ID
+    const nombreInput = document.getElementById('nombreCompleto');
     const startInput = document.getElementById('start');
     const emailInput = document.getElementById('email');
     const btn = document.getElementById('btn-agendar');
@@ -11,26 +15,27 @@ async function agendarTurno() {
         return;
     }
 
+    // Procesamiento de fecha
     const fechaSeleccionada = new Date(startInput.value);
     fechaSeleccionada.setMinutes(0, 0, 0); 
     const startExacto = fechaSeleccionada.toISOString();
 
     const datos = {
         summary: summaryInput.value || "Consulta", 
-        nombreCompleto: nombreInput.value, // <--- Se agrega al paquete de envío
+        nombreCompleto: nombreInput.value, 
         start: startExacto, 
         email: emailInput.value
     };
 
+    // Estado visual de carga
     btn.disabled = true;
     const textoOriginal = btn.innerHTML;
     btn.innerHTML = "⌛ PROCESANDO...";
 
     try {
-
-const res = await fetch("/calendar/agendar", {
-   method: "POST",
-   // ...
+        // Llamada al servidor usando la URL de Render
+        const res = await fetch(`${API_URL}/calendar/agendar`, {
+            method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(datos)
         });
@@ -44,6 +49,7 @@ const res = await fetch("/calendar/agendar", {
 
         if (res.ok) {
             alert("✅ ¡Turno agendado! Revisá tu mail.");
+            // Limpiar formulario
             summaryInput.value = "";
             nombreInput.value = "";
             startInput.value = "";
@@ -52,8 +58,10 @@ const res = await fetch("/calendar/agendar", {
             alert("⚠️ Error: " + (data.error || "No se pudo agendar"));
         }
     } catch (err) {
+        console.error("Error de conexión:", err);
         alert("Fallo de conexión con el servidor");
     } finally {
+        // Restaurar botón
         btn.disabled = false;
         btn.innerHTML = textoOriginal;
     }

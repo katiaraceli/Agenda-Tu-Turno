@@ -23,8 +23,11 @@ const __dirname = path.dirname(__filename);
 // ✅ 1. Crear app (SIEMPRE primero)
 const app = express();
 
-// ✅ 2. Middlewares
-app.use(cors());
+// ✅ 2. 
+// Permitir que cualquier origen se conecte (ideal para pruebas iniciales)
+app.use(cors({
+  origin: "*" 
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
