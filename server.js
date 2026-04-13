@@ -8,7 +8,7 @@ import { env as config } from "./config/env.js";
 
 // Servicios
 import { cargarTokenSiExiste } from "./services/googleService.js";
-import "./services/mailer.js";
+import "./config/mailer.js";
 
 // Rutas
 import authRoutes from "./routes/auth.js";
@@ -24,7 +24,7 @@ const app = express();
 // ✅ 2. Middlewares
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, ".")));
+app.use(express.static(path.join(__dirname, "public")));
 
 // ✅ 3. Inicializaciones
 cargarTokenSiExiste();
