@@ -1,4 +1,4 @@
-import { inject } from '@vercel/analytics';
+import { Analytics } from "@vercel/analytics/next"
 
 inject();
 // 1. Configuración de la URL del Backend
