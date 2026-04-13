@@ -5,17 +5,16 @@ dotenv.config();
 
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false, // Ojo: false para el puerto 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  connectionTimeout: 20000, // Le damos 20 segundos para conectar
-  greetingTimeout: 20000,
-  socketTimeout: 20000,
+  connectionTimeout: 20000,
   tls: {
-    rejectUnauthorized: false 
+    rejectUnauthorized: false,
+    minVersion: "TLSv1.2" // Forzamos una versión de seguridad moderna
   }
 });
 
