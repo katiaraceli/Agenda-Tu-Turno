@@ -25,9 +25,19 @@ const app = express();
 
 // ✅ 2. 
 // Permitir que cualquier origen se conecte (ideal para pruebas iniciales)
+// En tu server.js del Backend
+import cors from 'cors';
+
+const corsOptions = {
+  origin: 'https://agenda-tu-turno.vercel.app', // Tu URL de Vercel
+  optionsSuccessStatus: 200
+};
+
+// En server.js
 app.use(cors({
-  origin: "*" 
+  origin: "https://agenda-tu-turno.vercel.app"
 }));
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
