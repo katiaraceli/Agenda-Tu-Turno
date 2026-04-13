@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda tu Turno | Reserva Premium</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
     <div class="bg-diagonal"></div>
-
    <main class="main-container">
     <header class="header">
         <h1 class="titulo-dorado">AGENDA TU TURNO</h1>
@@ -21,27 +18,22 @@
     <section class="card-container">
         <div class="card">
             <form id="form-agenda" onsubmit="event.preventDefault();">
-
                 <div class="input-group">
                     <label for="summary">Motivo del turno</label>
                     <input type="text" id="summary" placeholder="Ej: [Motivo] con [Nombre]">
                 </div>
-
                 <div class="input-group">
                     <label for="nombreCompleto">Tu Nombre Completo</label>
                     <input type="text" id="nombreCompleto" placeholder="Ej: Juan Pérez" required>
                 </div>
-
                 <div class="input-group">
                     <label for="email">Tu Correo Electrónico</label>
                     <input type="email" id="email" placeholder="nombre@ejemplo.com" required>
                 </div>
-
                 <div class="input-group">
                     <label for="start">Fecha y Hora</label>
                     <input type="datetime-local" id="start" step="3600" required>
                 </div>
-
                 <button type="button" id="btn-agendar" class="btn-premium" onclick="agendarTurno()">
                     <span class="btn-content">
                         <span class="icon">📅</span>
@@ -54,5 +46,6 @@
 </main>
 
     <script src="script.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
