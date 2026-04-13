@@ -1,3 +1,6 @@
+import { inject } from '@vercel/analytics';
+
+inject();
 // 1. Configuración de la URL del Backend
 const API_URL = "https://agenda-tu-turno.onrender.com"; 
 
