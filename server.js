@@ -28,7 +28,7 @@ const app = express();
 // En tu server.js del Backend
 import cors from 'cors';
 
-// 
+
 app.use(cors({
   origin: "https://miturno-gamma.vercel.app"
 }));
