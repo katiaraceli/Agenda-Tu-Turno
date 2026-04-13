@@ -30,7 +30,7 @@ import cors from 'cors';
 
 // 
 app.use(cors({
-  origin: "https://https://miturno-gamma.vercel.app/"
+  origin: "https://miturno-gamma.vercel.app"
 }));
 
 app.use(express.json());
