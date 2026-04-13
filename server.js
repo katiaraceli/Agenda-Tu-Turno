@@ -24,9 +24,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // ✅ 2. 
-// Permitir que cualquier origen se conecte (ideal para pruebas iniciales)
-// En tu server.js del Backend
-import cors from 'cors';
+
 
 
 app.use(cors({
