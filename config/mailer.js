@@ -6,21 +6,25 @@ dotenv.config();
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
-  secure: true, // Siempre true para puerto 465
+  secure: true, // Puerto 465 usa SSL
+  pool: true,   // Mantener la conexión abierta
+  maxConnections: 1,
+  maxMessages: Infinity,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  connectionTimeout: 30000, // Subimos a 30 segundos
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
-  dnsTimeout: 30000,
+  connectionTimeout: 60000, // Le damos 1 minuto entero
   tls: {
-    rejectUnauthorized: false,
-    servername: 'smtp.gmail.com' // Esto ayuda a que el certificado coincida
+    rejectUnauthorized: false
   }
 });
-// Verificación de conexión para estar seguros al arrancar
-transporter.verify()
-    .then(() => console.log('✅ Gmail vinculado y listo para enviar'))
-    .catch((err) => console.error('❌ Error en mailer.js:', err.message));
+
+// Verificación con manejo de reconexión
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('❌ Error en mailer.js:', error.message);
+  } else {
+    console.log('✅ Gmail vinculado y listo para enviar');
+  }
+});
