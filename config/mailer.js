@@ -1,30 +1,26 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
-export const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // Puerto 465 usa SSL
-  pool: true,   // Mantener la conexión abierta
-  maxConnections: 1,
-  maxMessages: Infinity,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  connectionTimeout: 60000, // Le damos 1 minuto entero
-  tls: {
-    rejectUnauthorized: false
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Verificación con manejo de reconexión
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌ Error en mailer.js:', error.message);
-  } else {
-    console.log('✅ Gmail vinculado y listo para enviar');
-  }
-});
+export const enviarMailConfirmacion = async (email, nombre, fecha) => {
+    try {
+        await resend.emails.send({
+            from: 'Turnos <onboarding@resend.dev>',
+            to: email,
+            subject: '✅ ¡Turno Confirmado!',
+            html: `
+                <div style="font-family: sans-serif; border: 1px solid #d4af37; padding: 20px; border-radius: 10px;">
+                    <h1 style="color: #d4af37;">¡Hola, ${nombre}!</h1>
+                    <p>Tu turno ha sido agendado con éxito para el día:</p>
+                    <h2 style="background: #fdfaf0; padding: 10px;">${new Date(fecha).toLocaleString()}</h2>
+                    <p>Gracias por confiar en nuestra plataforma.</p>
+                </div>
+            `
+        });
+        console.log("Email enviado con éxito a:", email);
+    } catch (error) {
+        console.error("Error enviando email:", error);
+    }
+};
