@@ -5,75 +5,114 @@ import { enviarNotificaciones } from "../services/notificaciones.js";
 
 const router = express.Router();
 
+// --- 1. DISPONIBILIDAD (NUEVO) ---
+router.get("/disponibilidad", async (req, res) => {
+    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+    try {
+        const response = await calendar.events.list({
+            calendarId: "primary",
+            timeMin: new Date().toISOString(),
+            timeMax: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            singleEvents: true,
+            orderBy: "startTime",
+            timeZone: "America/Argentina/Buenos_Aires"
+        });
+        // Enviamos solo el array de fechas ocupadas
+        const ocupados = response.data.items.map(event => event.start.dateTime || event.start.date);
+        res.json(ocupados);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener disponibilidad" });
+    }
+});
+
+// --- 2. AGENDAR (MODIFICADO CON METADATA) ---
 router.post("/agendar", async (req, res) => {
-    // 1. Recibimos los datos del Body
     const { summary, start, email, nombreCompleto } = req.body;
-    
-    // 2. Validación básica de seguridad
     if (!start || !email || !nombreCompleto) {
-        return res.status(400).json({ error: "Faltan datos obligatorios (Fecha, Email o Nombre)" });
+        return res.status(400).json({ error: "Faltan datos obligatorios" });
     }
 
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
     const fechaInicio = new Date(start);
-    // Definimos el fin del turno (1 hora después)
     const fechaFin = new Date(fechaInicio.getTime() + 3600000); 
 
     try {
-        // 3. Verificamos disponibilidad en el calendario
-        const checkEvents = await calendar.events.list({
-            calendarId: "primary",
-            // Agregamos un pequeño margen de 1 segundo para evitar solapamientos exactos
-            timeMin: new Date(fechaInicio.getTime() + 1000).toISOString(),
-            timeMax: new Date(fechaFin.getTime() - 1000).toISOString(),
-            singleEvents: true,
-            timeZone: "America/Argentina/Buenos_Aires"
-        });
-
-        if (checkEvents.data.items.length > 0) {
-            return res.status(409).json({ error: "El horario ya está ocupado. Por favor, elegí otro." });
-        }
-
-        // 4. Limpieza del motivo para que el calendario quede prolijo
         let motivoLimpio = (summary || "Consulta").replace(/Turno: /gi, "").split("(")[0].trim();
 
-        // 5. Grabamos en Google Calendar
         const response = await calendar.events.insert({
             calendarId: 'primary',
             resource: {
                 summary: `${motivoLimpio} - ${nombreCompleto}`, 
-                description: `Cliente: ${nombreCompleto}\nEmail: ${email}\nMotivo: ${motivoLimpio}`,
-                start: { 
-                    dateTime: fechaInicio.toISOString(), 
-                    timeZone: "America/Argentina/Buenos_Aires" 
-                },
-                end: { 
-                    dateTime: fechaFin.toISOString(), 
-                    timeZone: "America/Argentina/Buenos_Aires" 
-                },
+                description: `Cliente: ${nombreCompleto}\nEmail: ${email}`,
+                start: { dateTime: fechaInicio.toISOString(), timeZone: "America/Argentina/Buenos_Aires" },
+                end: { dateTime: fechaFin.toISOString(), timeZone: "America/Argentina/Buenos_Aires" },
+                // 🔑 CLAVE PRO: Guardamos el email de forma privada para buscarlo luego
+                extendedProperties: {
+                    private: { clienteEmail: email }
+                }
             },
         });
 
-        // 6. DISPARO DE NOTIFICACIÓN (Resend)
-        // Usamos .catch para que si falla el mail, el usuario igual reciba su confirmación de turno
-        enviarNotificaciones(
-            email, 
-            nombreCompleto, 
-            motivoLimpio, 
-            start, 
-            response.data.htmlLink
-        ).catch(e => console.error("❌ Error enviando mail con Resend:", e.message));
+        enviarNotificaciones(email, nombreCompleto, motivoLimpio, start, response.data.htmlLink)
+            .catch(e => console.error("❌ Error mail:", e.message));
 
-        // 7. Respuesta exitosa al Frontend
-        return res.status(200).json({ 
-            success: true, 
-            message: "¡Turno creado con éxito!",
-            link: response.data.htmlLink 
-        });
-
+        res.json({ success: true, eventId: response.data.id }); // Mandamos el ID al front
     } catch (error) {
-        console.error("❌ Error en el proceso de agendado:", error);
-        return res.status(500).json({ error: "Error interno del servidor al procesar el turno" });
+        res.status(500).json({ error: "Error al agendar" });
+    }
+});
+
+// --- 3. BUSCAR POR EMAIL (NUEVO) ---
+router.get("/mis-turnos", async (req, res) => {
+    const { email } = req.query;
+    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+    try {
+        const response = await calendar.events.list({
+            calendarId: "primary",
+            // 🔎 Filtramos solo los eventos que tengan este email guardado
+            privateExtendedProperty: `clienteEmail=${email}`,
+            timeMin: new Date().toISOString(), // Solo turnos futuros
+            singleEvents: true
+        });
+        res.json(response.data.items);
+    } catch (error) {
+        res.status(500).json({ error: "Error al buscar turnos" });
+    }
+});
+
+// --- 4. CANCELAR (NUEVO) ---
+router.delete("/cancelar/:id", async (req, res) => {
+    const { id } = req.params;
+    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+    try {
+        await calendar.events.delete({ calendarId: "primary", eventId: id });
+        res.json({ success: true, message: "Turno eliminado y horario liberado" });
+    } catch (error) {
+        res.status(500).json({ error: "No se pudo cancelar el turno" });
+    }
+});
+
+// --- 5. REPROGRAMAR (NUEVO - PATCH) ---
+router.patch("/reprogramar/:id", async (req, res) => {
+    const { id } = req.params;
+    const { nuevaFecha } = req.body;
+    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+    
+    const fechaInicio = new Date(nuevaFecha);
+    const fechaFin = new Date(fechaInicio.getTime() + 3600000);
+
+    try {
+        await calendar.events.patch({
+            calendarId: "primary",
+            eventId: id,
+            resource: {
+                start: { dateTime: fechaInicio.toISOString(), timeZone: "America/Argentina/Buenos_Aires" },
+                end: { dateTime: fechaFin.toISOString(), timeZone: "America/Argentina/Buenos_Aires" }
+            }
+        });
+        res.json({ success: true, message: "Turno reprogramado con éxito" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al reprogramar" });
     }
 });
 

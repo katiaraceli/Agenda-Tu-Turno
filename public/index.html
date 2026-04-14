@@ -4,47 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda tu Turno | Reserva Premium</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-</head>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/confetti.css"> </head>
 <body>
     <div class="bg-diagonal"></div>
-   <main class="main-container">
-    <header class="header">
-        <h1 class="titulo-dorado">AGENDA TU TURNO</h1>
-        <p class="subtitulo">Reserva tu espacio en un solo clic</p>
-    </header>
+    
+    <main class="main-container">
+        <header class="header">
+            <h1 class="titulo-dorado">AGENDA TU TURNO</h1>
+            <p class="subtitulo">Reserva tu espacio en un solo clic</p>
+        </header>
 
-    <section class="card-container">
-        <div class="card">
-            <form id="form-agenda" onsubmit="event.preventDefault();">
-                <div class="input-group">
-                    <label for="summary">Motivo del turno</label>
-                    <input type="text" id="summary" placeholder="Ej: [Motivo] con [Nombre]">
-                </div>
-                <div class="input-group">
-                    <label for="nombreCompleto">Tu Nombre Completo</label>
-                    <input type="text" id="nombreCompleto" placeholder="Ej: Juan Pérez" required>
-                </div>
-                <div class="input-group">
-                    <label for="email">Tu Correo Electrónico</label>
-                    <input type="email" id="email" placeholder="nombre@ejemplo.com" required>
-                </div>
-                <div class="input-group">
-                    <label for="start">Fecha y Hora</label>
-                    <input type="datetime-local" id="start" step="3600" required>
-                </div>
-                <button type="button" id="btn-agendar" class="btn-premium" onclick="agendarTurno()">
-                    <span class="btn-content">
-                        <span class="icon">📅</span>
-                        <span class="text">AGENDAR</span>
-                    </span>
-                </button>
-            </form>
-        </div>
-    </section>
-</main>
+        <section class="card-container">
+            <div class="card" id="main-card">
+                <form id="form-agenda">
+                    <div class="input-group">
+                        <label for="summary">Motivo del turno</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🛠️</span>
+                            <input type="text" id="summary" placeholder="Ej: Consulta técnica">
+                        </div>
+                    </div>
 
+                    <div class="input-group">
+                        <label for="nombreCompleto">Tu Nombre Completo</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="nombreCompleto" placeholder="Ej: Juan Pérez" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="email">Tu Correo Electrónico</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">✉️</span>
+                            <input type="email" id="email" placeholder="nombre@ejemplo.com" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="start">Fecha y Hora</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">📅</span>
+                            <input type="text" id="start" placeholder="Selecciona fecha y hora" required>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btn-agendar" class="btn-premium" onclick="agendarTurno()">
+                        <span class="btn-text">AGENDAR</span>
+                        <div class="spinner" id="spinner"></div>
+                    </button>
+
+                    <div class="extra-actions">
+                        <button type="button" class="btn-reprogramar" onclick="mostrarBusqueda()">GESTIONAR MI TURNO</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="search-section" class="card hidden">
+                <h3 class="card-title">Buscar mi Turno</h3>
+                <div class="input-group">
+                    <input type="email" id="email-busqueda" placeholder="Ingresa el mail de tu reserva">
+                </div>
+                <button class="btn-premium" onclick="buscarTurnos()">BUSCAR</button>
+                <button class="btn-text-only" onclick="volverAlInicio()">Volver</button>
+            </div>
+
+            <div id="card-confirmacion" class="card-confirmacion hidden">
+                <div class="confirmacion-header">
+                    <span class="icon-success">✨</span>
+                    <h4>Turno Encontrado</h4>
+                </div>
+                <div class="confirmacion-body">
+                    <p><strong>Motivo:</strong> <span id="res-motivo"></span></p>
+                    <p><strong>Fecha:</strong> <span id="res-fecha"></span></p>
+                </div>
+                <div class="confirmacion-footer">
+                    <button class="btn-mini-outline" onclick="prepararReprogramacion()">Reprogramar</button>
+                    <button class="btn-mini-link" onclick="solicitarCancelacion()">Cancelar turno</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
+    
     <script src="script.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
 </body>

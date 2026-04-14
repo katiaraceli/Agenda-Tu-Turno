@@ -1,31 +1,49 @@
 const API_URL = "https://agenda-tu-turno.onrender.com"; 
+let fp; // Instancia de Flatpickr
 
+// Función: Cargar disponibilidad y configurar calendario
+async function cargarDisponibilidad() {
+    try {
+        const res = await fetch(`${API_URL}/calendar/disponibilidad`);
+        const ocupados = await res.json();
+
+        fp = flatpickr("#start", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today",
+            disable: ocupados.map(f => new Date(f)),
+            locale: "es",
+            time_24hr: true,
+            minuteIncrement: 60
+        });
+    } catch (err) {
+        console.error("Error cargando agenda:", err);
+    }
+}
+
+// Función: Agendar turno (Modificada para Fase 2)
 async function agendarTurno() {
     const summaryInput = document.getElementById('summary');
     const nombreInput = document.getElementById('nombreCompleto');
     const startInput = document.getElementById('start');
     const emailInput = document.getElementById('email');
     const btn = document.getElementById('btn-agendar');
+    const spinner = document.getElementById('spinner');
 
     if (!startInput.value || !emailInput.value || !nombreInput.value) {
-        alert("Por favor, completá Nombre, Email y Fecha");
+        alert("Por favor, completá los campos obligatorios");
         return;
     }
 
-    const fechaSeleccionada = new Date(startInput.value);
-    fechaSeleccionada.setMinutes(0, 0, 0); 
-    const startExacto = fechaSeleccionada.toISOString();
-
     const datos = {
-        summary: summaryInput.value || "Consulta", 
-        nombreCompleto: nombreInput.value, 
-        start: startExacto, 
+        summary: summaryInput.value || "Consulta",
+        nombreCompleto: nombreInput.value,
+        start: new Date(startInput.value).toISOString(),
         email: emailInput.value
     };
 
     btn.disabled = true;
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⌛ PROCESANDO...";
+    spinner.style.display = "block";
 
     try {
         const res = await fetch(`${API_URL}/calendar/agendar`, {
@@ -36,25 +54,77 @@ async function agendarTurno() {
 
         const data = await res.json();
 
-        if (res.status === 409) {
-            alert("❌ Horario ocupado. Elegí otro.");
-            return;
-        }
-
         if (res.ok) {
-            alert("✅ ¡Turno agendado! Revisá tu mail.");
-            summaryInput.value = "";
-            nombreInput.value = "";
-            startInput.value = "";
-            emailInput.value = "";
+            localStorage.setItem('ultimo_turno_id', data.eventId);
+            mostrarConfirmacion(datos.summary, startInput.value);
+            document.getElementById('form-agenda').reset();
+            cargarDisponibilidad(); // Recargar grises
         } else {
-            alert("⚠️ Error: " + (data.error || "No se pudo agendar"));
+            alert(data.error || "Error al agendar");
         }
     } catch (err) {
-        console.error("Error de conexión:", err);
-        alert("Fallo de conexión con el servidor");
+        alert("Error de conexión");
     } finally {
         btn.disabled = false;
-        btn.innerHTML = textoOriginal;
+        spinner.style.display = "none";
     }
 }
+
+// Función: Buscar turnos por email
+async function buscarTurnos() {
+    const email = document.getElementById('email-busqueda').value;
+    if (!email) return alert("Ingresá tu mail");
+
+    try {
+        const res = await fetch(`${API_URL}/calendar/mis-turnos?email=${email}`);
+        const turnos = await res.json();
+
+        if (turnos.length > 0) {
+            const t = turnos[0]; 
+            localStorage.setItem('ultimo_turno_id', t.id);
+            mostrarConfirmacion(t.summary, t.start.dateTime);
+        } else {
+            alert("No se encontraron turnos con ese email");
+        }
+    } catch (err) {
+        alert("Error al buscar");
+    }
+}
+
+// Función: Cancelar turno
+async function solicitarCancelacion() {
+    const id = localStorage.getItem('ultimo_turno_id');
+    if (!id || !confirm("¿Seguro que querés cancelar este turno?")) return;
+
+    try {
+        const res = await fetch(`${API_URL}/calendar/cancelar/${id}`, { method: "DELETE" });
+        if (res.ok) {
+            alert("Turno cancelado con éxito");
+            location.reload();
+        }
+    } catch (err) {
+        alert("No se pudo cancelar");
+    }
+}
+
+// Función: Controladores de UI
+function mostrarBusqueda() {
+    document.getElementById('main-card').classList.add('hidden');
+    document.getElementById('search-section').classList.remove('hidden');
+}
+
+function volverAlInicio() {
+    location.reload();
+}
+
+function mostrarConfirmacion(motivo, fecha) {
+    document.getElementById('search-section').classList.add('hidden');
+    document.getElementById('main-card').classList.add('hidden');
+    const card = document.getElementById('card-confirmacion');
+    card.classList.remove('hidden');
+    document.getElementById('res-motivo').innerText = motivo;
+    document.getElementById('res-fecha').innerText = new Date(fecha).toLocaleString();
+}
+
+// Inicialización
+document.addEventListener("DOMContentLoaded", cargarDisponibilidad);
