@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reserva Premium | Agenda</title>
+    <title>Reserva Premium | Katia Raceli</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="style.css">
@@ -14,12 +14,13 @@
         
         <header class="header">
             <h1 class="titulo-dorado">AGENDA TU TURNO</h1>
-            <p class="subtitulo">Selecciona una opción para comenzar</p>
+            <p class="subtitulo">Gestión de citas profesional</p>
         </header>
 
         <nav class="tabs-nav">
             <button id="tab-agendar" class="tab-btn active" onclick="cambiarVista('agendar')">AGENDAR</button>
-            <button id="tab-gestionar" class="tab-btn" onclick="cambiarVista('gestionar')">GESTIONAR</button>
+            <button id="tab-cancelar" class="tab-btn" onclick="cambiarVista('cancelar')">CANCELAR</button>
+            <button id="tab-reprogramar" class="tab-btn" disabled title="Próximamente">REPROGRAMAR</button>
         </nav>
 
         <div class="card-wrapper">
@@ -34,45 +35,44 @@
                     </div>
                 </div>
 
-                <form id="form-agenda" class="form-premium">
+                <form id="form-agenda">
                     <div class="input-group">
                         <label>Motivo</label>
                         <input type="text" id="summary" placeholder="Ej: Consulta técnica">
                     </div>
                     <div class="input-group">
                         <label>Nombre Completo</label>
-                        <input type="text" id="nombreCompleto" placeholder="Tu nombre" required>
+                        <input type="text" id="nombreCompleto" placeholder="Ingresa tu nombre" required>
                     </div>
                     <div class="input-group">
-                        <label>Email</label>
-                        <input type="email" id="email" placeholder="tu@email.com" required>
+                        <label>Email de Contacto</label>
+                        <input type="email" id="email" placeholder="ejemplo@correo.com" required>
                     </div>
                     <div class="input-group">
                         <label>Fecha y Hora</label>
-                        <input type="text" id="start" placeholder="Seleccionar..." required readonly>
+                        <input type="text" id="start" placeholder="Selecciona un horario" required readonly>
+                        <small id="api-status" class="status-info"></small>
                     </div>
                     <button type="button" id="btn-agendar" class="btn-primary" onclick="agendarTurno()">CONFIRMAR TURNO</button>
                 </form>
             </section>
 
-            <section id="vista-gestionar" class="view-content hidden">
-                <div class="form-premium">
+            <section id="vista-cancelar" class="view-content hidden">
+                <div class="gestion-container">
+                    <p class="info-text">Para cancelar un turno, busca tu reserva por email.</p>
                     <div class="input-group">
-                        <label>Buscar por Email</label>
+                        <label>Tu Email</label>
                         <div class="search-row">
-                            <input type="email" id="email-busqueda" placeholder="Introduce tu email">
-                            <button class="btn-search" onclick="buscarTurnos()">🔍</button>
+                            <input type="email" id="email-busqueda" placeholder="tu@email.com">
+                            <button class="btn-search" onclick="buscarTurnos()">BUSCAR</button>
                         </div>
                     </div>
-
                     <div id="resultado-busqueda" class="hidden">
                         <div class="info-card-gestion">
                             <p id="res-motivo"></p>
                             <p id="res-fecha"></p>
                         </div>
-                        <div class="acciones-gestion">
-                            <button class="btn-outline-danger" onclick="solicitarCancelacion()">CANCELAR TURNO</button>
-                        </div>
+                        <button class="btn-danger" onclick="solicitarCancelacion()">ELIMINAR TURNO DEFINITIVAMENTE</button>
                     </div>
                 </div>
             </section>
