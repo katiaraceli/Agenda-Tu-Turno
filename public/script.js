@@ -1,16 +1,33 @@
 const API_URL = "https://agenda-tu-turno.onrender.com";
 let fp;
 
-/* 1. SISTEMA DE VISTAS */
+/* 1. SISTEMA DE VISTAS (NAVEGACIÓN) */
 function cambiarVista(vista) {
     const views = ['vista-agendar', 'vista-cancelar'];
     const tabs = ['tab-agendar', 'tab-cancelar'];
     
-    views.forEach(v => document.getElementById(v).classList.add('hidden'));
-    tabs.forEach(t => document.getElementById(t).classList.remove('active'));
+    // Ocultar todas las secciones y desactivar pestañas
+    views.forEach(v => {
+        const el = document.getElementById(v);
+        if (el) el.classList.add('hidden');
+    });
 
-    document.getElementById(`vista-${vista}`).classList.remove('hidden');
-    document.getElementById(`tab-${vista}`).classList.add('active');
+    tabs.forEach(t => {
+        const el = document.getElementById(t);
+        if (el) el.classList.remove('active');
+    });
+
+    // Activar la vista y pestaña seleccionada
+    const vistaDestino = document.getElementById(`vista-${vista}`);
+    const tabDestino = document.getElementById(`tab-${vista}`);
+
+    if (vistaDestino) vistaDestino.classList.remove('hidden');
+    if (tabDestino) tabDestino.classList.add('active');
+
+    // Forzar reinicialización del calendario si volvemos a Agendar
+    if (vista === 'agendar' && !fp) {
+        cargarDisponibilidad();
+    }
 }
 
 /* 2. INICIALIZACIÓN DEL CALENDARIO (RESILIENTE) */
@@ -23,17 +40,19 @@ async function cargarDisponibilidad() {
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         
         const data = await res.json();
-        // Validación estricta de array
         if (Array.isArray(data)) {
+            // Filtrar y convertir a objetos Date válidos
             ocupados = data.map(f => new Date(f)).filter(d => !isNaN(d));
             console.log("✅ Disponibilidad cargada correctamente.");
+            if (statusLabel) statusLabel.innerText = ""; 
         }
     } catch (e) {
         console.error("⚠️ Fallo en Backend:", e.message);
-        statusLabel.innerText = "Nota: Selecciona tu horario manualmente.";
+        // Si falla la API, informamos al usuario de forma elegante
+        if (statusLabel) statusLabel.innerText = "Nota: Selecciona tu horario manualmente.";
     }
 
-    // Inicialización garantizada de Flatpickr
+    // Inicialización de Flatpickr (siempre se ejecuta)
     fp = flatpickr("#start", {
         enableTime: true,
         dateFormat: "Y-m-d H:i",
@@ -42,8 +61,7 @@ async function cargarDisponibilidad() {
         locale: "es",
         time_24hr: true,
         minuteIncrement: 60,
-        allowInput: false,
-        onOpen: () => console.log("Calendario abierto.")
+        allowInput: false
     });
 }
 
@@ -76,7 +94,10 @@ async function agendarTurno() {
             document.getElementById('detalle-turno-exito').innerText = `${fechaInput} hs`;
             msg.classList.remove('hidden');
             document.getElementById('form-agenda').reset();
-            cargarDisponibilidad(); // Refrescar bloqueos
+            
+            // Refrescar disponibilidad para bloquear el horario recién tomado
+            await cargarDisponibilidad(); 
+            
             setTimeout(() => msg.classList.add('hidden'), 8000);
         } else {
             alert("El servidor no pudo procesar la reserva. Intenta nuevamente.");
@@ -92,6 +113,8 @@ async function agendarTurno() {
 /* 4. ACCIÓN: GESTIONAR (CANCELAR) */
 async function buscarTurnos() {
     const email = document.getElementById('email-busqueda').value;
+    const resultadoDiv = document.getElementById('resultado-busqueda');
+    
     if (!email) return alert("Ingresa tu email.");
 
     try {
@@ -99,13 +122,15 @@ async function buscarTurnos() {
         const turnos = await res.json();
 
         if (Array.isArray(turnos) && turnos.length > 0) {
-            const t = turnos[0];
+            const t = turnos[0]; // Mostramos el primer turno encontrado
             document.getElementById('res-motivo').innerText = `Motivo: ${t.summary}`;
             document.getElementById('res-fecha').innerText = `Fecha: ${new Date(t.start.dateTime).toLocaleString()}`;
+            
             localStorage.setItem('id_temp', t.id);
-            document.getElementById('resultado-busqueda').classList.remove('hidden');
+            resultadoDiv.classList.remove('hidden');
         } else {
             alert("No se encontraron turnos con ese email.");
+            resultadoDiv.classList.add('hidden');
         }
     } catch (e) {
         alert("Error al buscar el turno.");
@@ -114,17 +139,22 @@ async function buscarTurnos() {
 
 async function solicitarCancelacion() {
     const id = localStorage.getItem('id_temp');
+    if (!id) return;
     if (!confirm("¿Deseas cancelar definitivamente este turno?")) return;
 
     try {
         const res = await fetch(`${API_URL}/calendar/cancelar/${id}`, { method: "DELETE" });
         if (res.ok) {
-            alert("Turno cancelado.");
-            location.reload();
+            alert("Turno cancelado correctamente.");
+            localStorage.removeItem('id_temp');
+            location.reload(); // Recargamos para limpiar todo el estado
+        } else {
+            alert("No se pudo cancelar el turno. Intenta más tarde.");
         }
     } catch (e) {
-        alert("No se pudo cancelar.");
+        alert("Hubo un problema con la conexión al servidor.");
     }
 }
 
+/* INICIALIZACIÓN AL CARGAR EL DOM */
 document.addEventListener("DOMContentLoaded", cargarDisponibilidad);
