@@ -19,16 +19,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(cors({
-  origin: 'https://miturno-gamma.vercel.app'
+  origin: ['https://miturno-gamma.vercel.app', 'http://localhost:5500'],
+  methods: ['GET', 'POST', 'DELETE', 'PUT'],
+  credentials: true
 }));
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-cargarTokenSiExiste();
-
-app.use('/auth', authRoutes);
-app.use('/calendar', calendarRoutes);
 
 const PORT = process.env.PORT || 10000;
 
