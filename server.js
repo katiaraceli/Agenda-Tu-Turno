@@ -24,6 +24,16 @@ app.use(cors({
   credentials: true
 }));
 
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+cargarTokenSiExiste();
+
+
+app.use('/auth', authRoutes);
+app.use('/calendar', calendarRoutes);
+// ----------------------------------------------
+
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, '0.0.0.0', () => {
