@@ -18,6 +18,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Configuración de CORS
 app.use(cors({
   origin: ['https://miturno-gamma.vercel.app', 'http://localhost:5500'],
   methods: ['GET', 'POST', 'DELETE', 'PUT'],
@@ -27,13 +28,14 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// 1. Cargamos el token
 cargarTokenSiExiste();
 
-
+// 2. ACTIVAMOS LAS RUTAS (Fundamental para evitar el 404)
 app.use('/auth', authRoutes);
 app.use('/calendar', calendarRoutes);
-// ----------------------------------------------
 
+// 3. CONFIGURACIÓN DEL PUERTO Y ENCENDIDO (Solo una vez)
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, '0.0.0.0', () => {
