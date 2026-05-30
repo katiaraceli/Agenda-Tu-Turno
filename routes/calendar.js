@@ -53,4 +53,46 @@ router.post("/agendar", async (req, res) => {
     }
 });
 
+// POST: Cancelar Turno buscando por Email
+router.post("/cancelar", async (req, res) => {
+    const { email } = req.body;
+    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+    if (!email) {
+        return res.status(400).json({ error: "El email es requerido" });
+    }
+
+    try {
+        // 1. Buscamos en Google Calendar usando la propiedad privada que creaste al agendar
+        const response = await calendar.events.list({
+            calendarId: "primary",
+            timeMin: new Date().toISOString(), // Solo turnos futuros
+            privateExtendedProperty: `clienteEmail=${email}`, // 🔍 Filtro directo por metadata
+            singleEvents: true
+        });
+
+        const eventos = response.data.items;
+
+        // 2. Si no encuentra ningún evento que coincida con ese mail
+        if (!eventos || eventos.length === 0) {
+            return res.status(404).json({ error: "No se encontró ningún turno activo para este correo." });
+        }
+
+        // 3. Tomamos el primer turno encontrado (el más próximo) y lo eliminamos
+        const turnoACancelar = eventos[0];
+        
+        await calendar.events.delete({
+            calendarId: "primary",
+            eventId: turnoACancelar.id
+        });
+
+        return res.json({ success: true, message: "Turno cancelado correctamente." });
+
+    } catch (error) {
+        console.error("Error al cancelar turno:", error);
+        return res.status(500).json({ error: "Error en el servidor al intentar cancelar el turno" });
+    }
+});
+
+// 
 export default router;
