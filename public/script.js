@@ -138,7 +138,7 @@ async function buscarTurnos() {
 }
 
 // Reemplaza tu URL de Render acá abajo
-const BASE_URL = 'https://tu-url-de-render.onrender.com/calendar'; 
+const BASE_URL = 'https://agenda-tu-turno.onrender.com/calendar'; 
 
 async function buscarTurnos() {
     const email = document.getElementById('email-busqueda').value;
