@@ -76,7 +76,45 @@ router.post("/cancelar", async (req, res) => {
         // 2. Si no encuentra ningún evento que coincida con ese mail
         if (!eventos || eventos.length === 0) {
             return res.status(404).json({ error: "No se encontró ningún turno activo para este correo." });
+    
         }
+
+        // POST: Buscar Turno por Email (No lo elimina, solo expone la info)
+router.post("/buscar", async (req, res) => {
+    const { email } = req.body;
+    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+    if (!email) {
+        return res.status(400).json({ error: "El email es requerido" });
+    }
+
+    try {
+        const response = await calendar.events.list({
+            calendarId: "primary",
+            timeMin: new Date().toISOString(),
+            privateExtendedProperty: `clienteEmail=${email}`,
+            singleEvents: true
+        });
+
+        const eventos = response.data.items;
+
+        if (!eventos || eventos.length === 0) {
+            return res.status(404).json({ error: "No se encontró ningún turno activo para este correo." });
+        }
+
+        // Devolvemos los datos del primer turno encontrado para que el front los muestre
+        const turno = eventos[0];
+        return res.json({
+            success: true,
+            summary: turno.summary,
+            start: turno.start.dateTime || turno.start.date
+        });
+
+    } catch (error) {
+        console.error("Error al buscar turno:", error);
+        return res.status(500).json({ error: "Error en el servidor al buscar el turno" });
+    }
+});
 
         // 3. Tomamos el primer turno encontrado (el más próximo) y lo eliminamos
         const turnoACancelar = eventos[0];

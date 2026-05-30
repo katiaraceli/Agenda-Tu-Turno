@@ -137,24 +137,68 @@ async function buscarTurnos() {
     }
 }
 
-async function solicitarCancelacion() {
-    const id = localStorage.getItem('id_temp');
-    if (!id) return;
-    if (!confirm("¿Deseas cancelar definitivamente este turno?")) return;
+// Reemplaza tu URL de Render acá abajo
+const BASE_URL = 'https://tu-url-de-render.onrender.com/calendar'; 
+
+async function buscarTurnos() {
+    const email = document.getElementById('email-busqueda').value;
+    if (!email) return alert('Por favor, ingresa tu email.');
 
     try {
-        const res = await fetch(`${API_URL}/calendar/cancelar/${id}`, { method: "DELETE" });
-        if (res.ok) {
-            alert("Turno cancelado correctamente.");
-            localStorage.removeItem('id_temp');
-            location.reload(); // Recargamos para limpiar todo el estado
-        } else {
-            alert("No se pudo cancelar el turno. Intenta más tarde.");
+        const response = await fetch(`${BASE_URL}/buscar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.error || 'Error al buscar el turno');
+            return;
         }
-    } catch (e) {
-        alert("Hubo un problema con la conexión al servidor.");
+
+        // Si lo encuentra, inyectamos la info en las etiquetas del HTML
+        document.getElementById('res-motivo').innerText = `Motivo: ${data.summary}`;
+        
+        // Formateamos un poco la fecha para que quede linda
+        const fechaFormateada = new Date(data.start).toLocaleString('es-AR', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+        });
+        document.getElementById('res-fecha').innerText = `Fecha: ${fechaFormateada}`;
+
+        // Mostramos el contenedor de confirmación
+        document.getElementById('resultado-busqueda').classList.remove('hidden');
+
+    } catch (error) {
+        console.error(error);
+        alert('Error de conexión con el servidor.');
     }
 }
 
-/* INICIALIZACIÓN AL CARGAR EL DOM */
-document.addEventListener("DOMContentLoaded", cargarDisponibilidad);
+async function solicitarCancelacion() {
+    const email = document.getElementById('email-busqueda').value;
+
+    try {
+        const response = await fetch(`${BASE_URL}/cancelar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('✅ Turno cancelado definitivamente con éxito.');
+            // Ocultamos el resultado y limpiamos el input
+            document.getElementById('resultado-busqueda').classList.add('hidden');
+            document.getElementById('email-busqueda').value = '';
+        } else {
+            alert(data.error || 'No se pudo cancelar el turno.');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Error al procesar la cancelación.');
+    }
+}
