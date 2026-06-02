@@ -32,7 +32,7 @@ export const enviarMailConfirmacion = async (email, nombre, fecha) => {
 // 2. CANCELACIÓN DE TURNO (A ambos)
 // ==========================================
 export const enviarMailCancelacion = async (emailCliente, nombreCliente, fechaTurno, motivo = "No especificado") => {
-    const CORREO_ADMIN = 'sistema.turnosapp@gmail.com'; // Tu correo de administrador
+    const CORREO_ADMIN = 'racelikatia@gmail.com'; // Tu correo de administrador
 
     try {
         await resend.emails.send({
