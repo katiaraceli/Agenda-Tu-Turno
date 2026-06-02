@@ -5,8 +5,17 @@ import { enviarNotificaciones } from "../services/notificaciones.js";
 
 const router = express.Router();
 
-// GET: Disponibilidad (Para que Flatpickr pinte los grises)
+// 💡 FEATURE FLAG: Forzamos la desconexión de Google Calendar
+const ENABLE_CALENDAR = false;
+
+// GET: Disponibilidad
 router.get("/disponibilidad", async (req, res) => {
+    // Si está en false, mandamos un array vacío (Modo demo: todo libre) sin tocar Google
+    if (!ENABLE_CALENDAR) {
+        console.log("ℹ️ [Modo Demo] Disponibilidad: Evitando llamada a Google Calendar.");
+        return res.json([]); 
+    }
+
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
     try {
         const response = await calendar.events.list({
@@ -23,9 +32,27 @@ router.get("/disponibilidad", async (req, res) => {
     }
 });
 
-// POST: Agendar (Con Metadata para gestión futura)
+// POST: Agendar
 router.post("/agendar", async (req, res) => {
     const { summary, start, email, nombreCompleto } = req.body;
+
+    // 🚀 CAMBIO QUIRÚRGICO: Bypass de Google Calendar si está deshabilitado
+    if (!ENABLE_CALENDAR) {
+        console.log("ℹ️ [Modo Demo] Agendar: Google Calendar deshabilitado. Procesando emails con Resend.");
+        try {
+            const linkSimulado = "https://miturno-gamma.vercel.app";
+            
+            // Forzamos el envío de correos vía Resend sin depender de la API de Google
+            await enviarNotificaciones(email, nombreCompleto, summary, start, linkSimulado);
+            
+            return res.json({ success: true, eventId: "demo_mode_no_calendar" });
+        } catch (e) {
+            console.error("❌ Error en envío de e-mails (Resend):", e.message);
+            return res.status(500).json({ error: "Error al procesar las notificaciones por mail." });
+        }
+    }
+
+    // Código original intacto (No se ejecuta si ENABLE_CALENDAR es false)
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
     const fechaInicio = new Date(start);
     const fechaFin = new Date(fechaInicio.getTime() + 3600000); 
@@ -39,48 +66,25 @@ router.post("/agendar", async (req, res) => {
                 start: { dateTime: fechaInicio.toISOString(), timeZone: "America/Argentina/Buenos_Aires" },
                 end: { dateTime: fechaFin.toISOString(), timeZone: "America/Argentina/Buenos_Aires" },
                 extendedProperties: {
-                    private: { clienteEmail: email } // 🔍 Metadata invisible
+                    private: { clienteEmail: email }
                 }
             },
         });
 
-        enviarNotificaciones(email, nombreCompleto, summary, start, response.data.htmlLink)
-            .catch(e => console.error("Error mail:", e.message));
-
+        await enviarNotificaciones(email, nombreCompleto, summary, start, response.data.htmlLink);
         res.json({ success: true, eventId: response.data.id });
     } catch (error) {
         res.status(500).json({ error: "Error al agendar" });
     }
 });
 
-// POST: Cancelar Turno buscando por Email
+// POST: Cancelar (Bypass directo basado en tu estructura actual)
 router.post("/cancelar", async (req, res) => {
-    const { email } = req.body;
-    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
-
-    if (!email) {
-        return res.status(400).json({ error: "El email es requerido" });
+    if (!ENABLE_CALENDAR) {
+        console.log("ℹ️ [Modo Demo] Cancelar: Google Calendar deshabilitado.");
+        return res.json({ success: true, message: "Modo demo: Turno cancelado." });
     }
 
-    try {
-        // 1. Buscamos en Google Calendar usando la propiedad privada que creaste al agendar
-        const response = await calendar.events.list({
-            calendarId: "primary",
-            timeMin: new Date().toISOString(), // Solo turnos futuros
-            privateExtendedProperty: `clienteEmail=${email}`, // 🔍 Filtro directo por metadata
-            singleEvents: true
-        });
-
-        const eventos = response.data.items;
-
-        // 2. Si no encuentra ningún evento que coincida con ese mail
-        if (!eventos || eventos.length === 0) {
-            return res.status(404).json({ error: "No se encontró ningún turno activo para este correo." });
-    
-        }
-
-        // POST: Buscar Turno por Email (No lo elimina, solo expone la info)
-router.post("/buscar", async (req, res) => {
     const { email } = req.body;
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
@@ -97,40 +101,20 @@ router.post("/buscar", async (req, res) => {
         });
 
         const eventos = response.data.items;
-
         if (!eventos || eventos.length === 0) {
             return res.status(404).json({ error: "No se encontró ningún turno activo para este correo." });
         }
 
-        // Devolvemos los datos del primer turno encontrado para que el front los muestre
-        const turno = eventos[0];
-        return res.json({
-            success: true,
-            summary: turno.summary,
-            start: turno.start.dateTime || turno.start.date
-        });
-
-    } catch (error) {
-        console.error("Error al buscar turno:", error);
-        return res.status(500).json({ error: "Error en el servidor al buscar el turno" });
-    }
-});
-
-        // 3. Tomamos el primer turno encontrado (el más próximo) y lo eliminamos
         const turnoACancelar = eventos[0];
-        
         await calendar.events.delete({
             calendarId: "primary",
             eventId: turnoACancelar.id
         });
 
         return res.json({ success: true, message: "Turno cancelado correctamente." });
-
     } catch (error) {
-        console.error("Error al cancelar turno:", error);
-        return res.status(500).json({ error: "Error en el servidor al intentar cancelar el turno" });
+        return res.status(500).json({ error: "Error en el servidor de Google." });
     }
 });
 
-// 
 export default router;

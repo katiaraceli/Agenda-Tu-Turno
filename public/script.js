@@ -1,187 +1,105 @@
-const API_URL = "https://agenda-tu-turno.onrender.com";
-let fp;
 
-/* 1. SISTEMA DE VISTAS (NAVEGACIÓN) */
-function cambiarVista(vista) {
-    const views = ['vista-agendar', 'vista-cancelar'];
-    const tabs = ['tab-agendar', 'tab-cancelar'];
-    
-    // Ocultar todas las secciones y desactivar pestañas
-    views.forEach(v => {
-        const el = document.getElementById(v);
-        if (el) el.classList.add('hidden');
-    });
+const BASE_URL = 'https://agenda-tu-turno.onrender.com'; 
 
-    tabs.forEach(t => {
-        const el = document.getElementById(t);
-        if (el) el.classList.remove('active');
-    });
-
-    // Activar la vista y pestaña seleccionada
-    const vistaDestino = document.getElementById(`vista-${vista}`);
-    const tabDestino = document.getElementById(`tab-${vista}`);
-
-    if (vistaDestino) vistaDestino.classList.remove('hidden');
-    if (tabDestino) tabDestino.classList.add('active');
-
-    // Forzar reinicialización del calendario si volvemos a Agendar
-    if (vista === 'agendar' && !fp) {
-        cargarDisponibilidad();
-    }
-}
-
-/* 2. INICIALIZACIÓN DEL CALENDARIO (RESILIENTE) */
-async function cargarDisponibilidad() {
-    let ocupados = [];
-    const statusLabel = document.getElementById('api-status');
-
-    try {
-        const res = await fetch(`${API_URL}/calendar/disponibilidad`);
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        
-        const data = await res.json();
-        if (Array.isArray(data)) {
-            // Filtrar y convertir a objetos Date válidos
-            ocupados = data.map(f => new Date(f)).filter(d => !isNaN(d));
-            console.log("✅ Disponibilidad cargada correctamente.");
-            if (statusLabel) statusLabel.innerText = ""; 
-        }
-    } catch (e) {
-        console.error("⚠️ Fallo en Backend:", e.message);
-        // Si falla la API, informamos al usuario de forma elegante
-        if (statusLabel) statusLabel.innerText = "Nota: Selecciona tu horario manualmente.";
-    }
-
-    // Inicialización de Flatpickr (siempre se ejecuta)
-    fp = flatpickr("#start", {
-        enableTime: true,
-        dateFormat: "Y-m-d H:i",
-        minDate: "today",
-        disable: ocupados,
-        locale: "es",
-        time_24hr: true,
-        minuteIncrement: 60,
-        allowInput: false
-    });
-}
-
-/* 3. ACCIÓN: AGENDAR */
-async function agendarTurno() {
-    const btn = document.getElementById('btn-agendar');
-    const msg = document.getElementById('mensaje-exito');
-    const fechaInput = document.getElementById('start').value;
-
-    if (!fechaInput) return alert("Por favor, selecciona una fecha y hora.");
-
-    const datos = {
-        summary: document.getElementById('summary').value || "Consulta General",
-        nombreCompleto: document.getElementById('nombreCompleto').value,
-        email: document.getElementById('email').value,
-        start: new Date(fechaInput).toISOString()
-    };
-
-    btn.disabled = true;
-    btn.innerText = "PROCESANDO...";
-
-    try {
-        const res = await fetch(`${API_URL}/calendar/agendar`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(datos)
+// Inicializador de Vistas y Flatpickr
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicialización básica del calendario visual
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr("#start", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            locale: "es",
+            minDate: "today",
+            time_24hr: true
         });
-
-        if (res.ok) {
-            document.getElementById('detalle-turno-exito').innerText = `${fechaInput} hs`;
-            msg.classList.remove('hidden');
-            document.getElementById('form-agenda').reset();
-            
-            // Refrescar disponibilidad para bloquear el horario recién tomado
-            await cargarDisponibilidad(); 
-            
-            setTimeout(() => msg.classList.add('hidden'), 8000);
-        } else {
-            alert("El servidor no pudo procesar la reserva. Intenta nuevamente.");
-        }
-    } catch (e) {
-        alert("Error de conexión. Verifica tu internet.");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "CONFIRMAR TURNO";
     }
-}
 
-/* 4. ACCIÓN: GESTIONAR (CANCELAR) */
-async function buscarTurnos() {
-    const email = document.getElementById('email-busqueda').value;
-    const resultadoDiv = document.getElementById('resultado-busqueda');
+    // Configuración del botón REPROGRAMAR
+    const btnReprogramar = document.getElementById('tab-reprogramar');
+    if (btnReprogramar) {
+        btnReprogramar.removeAttribute('disabled');
+        btnReprogramar.removeAttribute('title');
+        btnReprogramar.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('🔄 La reprogramación automática estará disponible próximamente. Por favor, cancela tu turno actual y genera uno nuevo.');
+        });
+    }
+});
+
+// Manejo del cambio de pestañas (Agendar / Cancelar / Reprogramar)
+function cambiarVista(vista) {
+    document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     
-    if (!email) return alert("Ingresa tu email.");
-
-    try {
-        const res = await fetch(`${API_URL}/calendar/mis-turnos?email=${email}`);
-        const turnos = await res.json();
-
-        if (Array.isArray(turnos) && turnos.length > 0) {
-            const t = turnos[0]; // Mostramos el primer turno encontrado
-            document.getElementById('res-motivo').innerText = `Motivo: ${t.summary}`;
-            document.getElementById('res-fecha').innerText = `Fecha: ${new Date(t.start.dateTime).toLocaleString()}`;
-            
-            localStorage.setItem('id_temp', t.id);
-            resultadoDiv.classList.remove('hidden');
-        } else {
-            alert("No se encontraron turnos con ese email.");
-            resultadoDiv.classList.add('hidden');
-        }
-    } catch (e) {
-        alert("Error al buscar el turno.");
+    if (vista === 'agendar') {
+        document.getElementById('vista-agendar').classList.add('active');
+        document.getElementById('vista-agendar').classList.remove('hidden');
+        document.getElementById('tab-agendar').classList.add('active');
+    } else if (vista === 'cancelar') {
+        document.getElementById('vista-cancelar').classList.add('active');
+        document.getElementById('vista-cancelar').classList.remove('hidden');
+        document.getElementById('tab-cancelar').classList.add('active');
     }
 }
 
-// Reemplaza tu URL de Render acá abajo
-const BASE_URL = 'https://agenda-tu-turno.onrender.com/calendar'; 
+// ==========================================
+// ACCIÓN: CONFIRMAR / AGENDAR TURNO
+// ==========================================
+async function agendarTurno() {
+    const summary = document.getElementById('summary').value;
+    const nombreCompleto = document.getElementById('nombreCompleto').value;
+    const email = document.getElementById('email').value;
+    const start = document.getElementById('start').value;
 
-async function buscarTurnos() {
-    const email = document.getElementById('email-busqueda').value;
-    if (!email) return alert('Por favor, ingresa tu email.');
+    if (!nombreCompleto || !email || !start) {
+        return alert('Por favor, completa todos los campos requeridos.');
+    }
+
+    const btnAgendar = document.getElementById('btn-agendar');
+    btnAgendar.innerText = 'PROCESANDO...';
+    btnAgendar.disabled = true;
 
     try {
-        const response = await fetch(`${BASE_URL}/buscar`, {
+        const response = await fetch(`${BASE_URL}/calendar/agendar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
+            body: JSON.stringify({ summary, nombreCompleto, email, start })
         });
 
         const data = await response.json();
 
-        if (!response.ok) {
-            alert(data.error || 'Error al buscar el turno');
-            return;
+        if (response.ok) {
+            alert('✅ ¡Reserva confirmada con éxito! Revisa tu casilla de correo.');
+            document.getElementById('form-agenda').reset();
+        } else {
+            alert(data.error || 'No se pudo procesar la reserva.');
         }
-
-        // Si lo encuentra, inyectamos la info en las etiquetas del HTML
-        document.getElementById('res-motivo').innerText = `Motivo: ${data.summary}`;
-        
-        // Formateamos un poco la fecha para que quede linda
-        const fechaFormateada = new Date(data.start).toLocaleString('es-AR', {
-            dateStyle: 'medium',
-            timeStyle: 'short'
-        });
-        document.getElementById('res-fecha').innerText = `Fecha: ${fechaFormateada}`;
-
-        // Mostramos el contenedor de confirmación
-        document.getElementById('resultado-busqueda').classList.remove('hidden');
-
     } catch (error) {
         console.error(error);
-        alert('Error de conexión con el servidor.');
+        alert('Error al conectar con el servidor.');
+    } finally {
+        btnAgendar.innerText = 'CONFIRMAR TURNO';
+        btnAgendar.disabled = false;
     }
 }
 
-async function solicitarCancelacion() {
-    const email = document.getElementById('email-busqueda').value;
+// ==========================================
+// ACCIÓN: BUSCAR Y CANCELAR DIRECTO 
+// ==========================================
+async function buscarTurnos() {
+    const emailInput = document.getElementById('email-busqueda');
+    const email = emailInput ? emailInput.value.trim() : '';
+
+    if (!email) {
+        return alert('Por favor, ingresa tu correo para cancelar la reserva.');
+    }
+
+    const btnSearch = document.querySelector('.btn-search');
+    btnSearch.innerText = 'PROCESANDO...';
+    btnSearch.disabled = true;
 
     try {
-        const response = await fetch(`${BASE_URL}/cancelar`, {
+        const response = await fetch(`${BASE_URL}/calendar/cancelar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
@@ -190,15 +108,21 @@ async function solicitarCancelacion() {
         const data = await response.json();
 
         if (response.ok) {
-            alert('✅ Turno cancelado definitivamente con éxito.');
-            // Ocultamos el resultado y limpiamos el input
-            document.getElementById('resultado-busqueda').classList.add('hidden');
-            document.getElementById('email-busqueda').value = '';
+            alert('✅ Reserva cancelada correctamente.');
+            if (emailInput) emailInput.value = '';
         } else {
-            alert(data.error || 'No se pudo cancelar el turno.');
+            alert(data.error || 'No se encontró ninguna reserva activa para este email.');
         }
     } catch (error) {
         console.error(error);
-        alert('Error al procesar la cancelación.');
+        alert('Error de conexión al procesar la solicitud.');
+    } finally {
+        btnSearch.innerText = 'BUSCAR';
+        btnSearch.disabled = false;
     }
+}
+
+// Se preserva vacía para evitar errores de referencias en el HTML viejo
+function solicitarCancelacion() {
+    return;
 }
