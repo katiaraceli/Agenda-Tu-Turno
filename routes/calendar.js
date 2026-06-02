@@ -78,19 +78,21 @@ router.post("/agendar", async (req, res) => {
     }
 });
 
-// POST: Cancelar (Bypass directo basado en tu estructura actual)
+// POST: Cancelar
 router.post("/cancelar", async (req, res) => {
-    if (!ENABLE_CALENDAR) {
-        console.log("ℹ️ [Modo Demo] Cancelar: Google Calendar deshabilitado.");
-        return res.json({ success: true, message: "Modo demo: Turno cancelado." });
-    }
-
     const { email } = req.body;
-    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
     if (!email) {
         return res.status(400).json({ error: "El email es requerido" });
     }
+
+    // 🚀 CAMBIO QUIRÚRGICO: Bypass de Google Calendar ordenado
+    if (!ENABLE_CALENDAR) {
+        console.log(`ℹ️ [Modo Demo] Cancelar: Google Calendar deshabilitado para ${email}.`);
+        return res.json({ success: true, message: "Modo demo: Turno cancelado." });
+    }
+
+    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
     try {
         const response = await calendar.events.list({
@@ -113,6 +115,7 @@ router.post("/cancelar", async (req, res) => {
 
         return res.json({ success: true, message: "Turno cancelado correctamente." });
     } catch (error) {
+        console.error("❌ Error al cancelar en Google Calendar:", error);
         return res.status(500).json({ error: "Error en el servidor de Google." });
     }
 });
